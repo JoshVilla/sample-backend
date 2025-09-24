@@ -4,7 +4,7 @@ const AdminSchema = new mongoose.Schema(
   {
     username: String,
     password: String,
-    status: Boolean,
+    role: String,
   },
   { timestamps: true }
 );

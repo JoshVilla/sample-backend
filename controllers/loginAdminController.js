@@ -19,7 +19,12 @@ export const loginAdmin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    res.status(201).json({ message: "Login Successful", credentials: admin });
+    res
+      .status(201)
+      .json({
+        message: "Login Successful",
+        credentials: { password: _, ...admin },
+      });
   } catch (error) {
     res.status(500).json({ error: "Failed to login" });
   }

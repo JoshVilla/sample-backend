@@ -4,15 +4,14 @@ import { SALT_ROUNDS } from "../utils/constant.js";
 
 export const addAdmin = async (req, res) => {
   try {
-    const { username, password, status } = req.body;
+    const { username, password, role } = req.body;
 
     // validate required fields
-    if (!username || !password) {
+    if (!username || !password || !role) {
       return res
         .status(400)
         .json({ error: "Username and password are required" });
     }
-
     // check if username already exists
     const existingAdmin = await Admin.findOne({ username });
     if (existingAdmin) {
@@ -26,17 +25,14 @@ export const addAdmin = async (req, res) => {
     const newAdmin = new Admin({
       username,
       password: hashedPassword,
-      status: status || 0, // default status if not provided
+      role: role || "admin",
     });
 
     await newAdmin.save();
 
-    // don’t expose password in response
-    const { password: _, ...adminData } = newAdmin.toObject();
-
     res.status(201).json({
       message: "Admin added successfully",
-      admin: adminData,
+      data: newAdmin,
     });
   } catch (error) {
     console.error("❌ Error in addAdmin:", error.message);
