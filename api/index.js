@@ -1,22 +1,19 @@
 import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
-
-dotenv.config();
+import cors from "cors";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI, {
+// ✅ Connect to MongoDB (only once)
+if (!global._mongooseConnected) {
+  mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  });
+  global._mongooseConnected = true;
+}
 
 // Schema + Model
 const AdminSchema = new mongoose.Schema(
@@ -31,11 +28,6 @@ const AdminSchema = new mongoose.Schema(
 const Admin = mongoose.models.Admin || mongoose.model("Admin", AdminSchema);
 
 // Routes
-app.get("/api/health", (req, res) => {
-  res.json({ message: "✅ Backend is running on Vercel!" });
-});
-
-// 🟢 GET all admins
 app.get("/api/admins", async (req, res) => {
   try {
     const admins = await Admin.find();
@@ -47,13 +39,5 @@ app.get("/api/admins", async (req, res) => {
   }
 });
 
-// ✅ For Vercel
+// ✅ Export the Express app as a Vercel handler
 export default app;
-
-// ✅ For local testing
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-  });
-}
