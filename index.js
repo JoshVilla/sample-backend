@@ -1,4 +1,4 @@
-// server.js (local only)
+// server.js (local dev only)
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -10,26 +10,41 @@ import { loginAdmin } from "./controllers/loginAdminController.js";
 import Admin from "./models/Admin.js";
 
 dotenv.config();
-await connectDB();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const startServer = async () => {
+  try {
+    await connectDB();
 
-// Routes
-app.get("/api/health", (req, res) => {
-  res.json({ message: "✅ Backend is running locally!" });
-});
+    const app = express();
+    app.use(cors());
+    app.use(express.json());
 
-app.get("/api/admins", async (req, res) => {
-  const admins = await Admin.find({}, { password: 0 });
-  res.json(admins);
-});
+    // Health check
+    app.get("/api/health", (req, res) => {
+      res.json({ message: "✅ Local backend running!" });
+    });
 
-app.post("/api/admin/add", addAdmin);
-app.post("/api/admin/login", loginAdmin);
+    // Admin routes
+    app.get("/api/admins", async (req, res) => {
+      try {
+        const admins = await Admin.find({}, { password: 0 });
+        res.json(admins);
+      } catch (err) {
+        res.status(500).json({ error: "Failed to fetch admins" });
+      }
+    });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
+    app.post("/api/admin/add", addAdmin);
+    app.post("/api/admin/login", loginAdmin);
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () =>
+      console.log(`🚀 Local server running at http://localhost:${PORT}`)
+    );
+  } catch (err) {
+    console.error("❌ Failed to start server:", err.message);
+    process.exit(1);
+  }
+};
+
+startServer();
